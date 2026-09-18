@@ -33,23 +33,33 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libmysqlclient-dev
 
-      # # Install dependensi khusus macOS
-      # - name: Install Dependencies (macOS)
-      #   if: runner.os == 'macOS'
-      #   run: brew install mysql-client
-
       # Compile menggunakan Makefile yang sudah ada
       - name: Build Module
         run: make
 
-      # Renaming file binary sesuai OS target
+      # Renaming file binary & menyalin libmysql.dll khusus Windows
       - name: Prepare Asset
         shell: bash
         run: |
           mv ${{ matrix.artifact_name }} ${{ matrix.asset_name }}
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cp lib/libmysql.dll .
+          fi
 
-      # Upload hasil compile ke GitHub Release
-      - name: Upload to GitHub Release
+      # Upload hasil compile & libmysql.dll ke GitHub Release
+      - name: Upload to GitHub Release (Windows)
+        if: runner.os == 'Windows'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ${{ matrix.asset_name }}
+            libmysql.dll
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Upload hasil compile ke GitHub Release (Linux / macOS)
+      - name: Upload to GitHub Release (Non-Windows)
+        if: runner.os != 'Windows'
         uses: softprops/action-gh-release@v1
         with:
           files: ${{ matrix.asset_name }}
