@@ -11,7 +11,7 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            artifact_name: mysql_pahat.dll
+            artifact_name: modules/mysql_pahat.dll
             asset_name: mysql_pahat-windows-amd64.dll
           - os: ubuntu-latest
             artifact_name: modules/mysql_pahat.so
