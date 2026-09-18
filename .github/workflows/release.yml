@@ -16,9 +16,9 @@ jobs:
           - os: ubuntu-latest
             artifact_name: modules/mysql_pahat.so
             asset_name: mysql_pahat-linux-amd64.so
-          - os: macos-latest
-            artifact_name: modules/mysql_pahat.dylib
-            asset_name: mysql_pahat-darwin-arm64.dylib
+          # - os: macos-latest
+          #   artifact_name: modules/mysql_pahat.dylib
+          #   asset_name: mysql_pahat-darwin-arm64.dylib
 
     runs-on: ${{ matrix.os }}
 
@@ -33,10 +33,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libmysqlclient-dev
 
-      # Install dependensi khusus macOS
-      - name: Install Dependencies (macOS)
-        if: runner.os == 'macOS'
-        run: brew install mysql-client
+      # # Install dependensi khusus macOS
+      # - name: Install Dependencies (macOS)
+      #   if: runner.os == 'macOS'
+      #   run: brew install mysql-client
 
       # Compile menggunakan Makefile yang sudah ada
       - name: Build Module
