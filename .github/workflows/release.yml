@@ -1,0 +1,57 @@
+name: Build and Release Pahat MySQL Module
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: mysql_pahat.dll
+            asset_name: mysql_pahat-windows-amd64.dll
+          - os: ubuntu-latest
+            artifact_name: modules/mysql_pahat.so
+            asset_name: mysql_pahat-linux-amd64.so
+          - os: macos-latest
+            artifact_name: modules/mysql_pahat.dylib
+            asset_name: mysql_pahat-darwin-arm64.dylib
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Install dependensi khusus Linux
+      - name: Install Dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmysqlclient-dev
+
+      # Install dependensi khusus macOS
+      - name: Install Dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: brew install mysql-client
+
+      # Compile menggunakan Makefile yang sudah ada
+      - name: Build Module
+        run: make
+
+      # Renaming file binary sesuai OS target
+      - name: Prepare Asset
+        shell: bash
+        run: |
+          mv ${{ matrix.artifact_name }} ${{ matrix.asset_name }}
+
+      # Upload hasil compile ke GitHub Release
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ matrix.asset_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
