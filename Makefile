@@ -1,5 +1,6 @@
 # ==============================================================================
 # Cross-Platform Makefile untuk MySQL Plugin Driver (Windows, Linux, & macOS)
+# Modern Static Linking (MSYS2 MinGW64 Support)
 # ==============================================================================
 
 # 1. Deteksi OS Otomatis
@@ -18,14 +19,16 @@ MODULES_DIR := modules
 
 # 3. Setting Konfigurasi Spesifik Per OS
 ifeq ($(DETECTED_OS),Windows)
-    # --- KONFIGURASI WINDOWS ---
+    # --- KONFIGURASI WINDOWS (MSYS2 MINGW64) ---
     TARGET := $(MODULES_DIR)/$(TARGET_NAME).dll
     
-    # Path SDK MySQL di Windows
-    MYSQL_DEV_DIR ?= C:/mysql_dev
+    # Path default MSYS2 MinGW64
+    MSYS2_DIR ?= C:/msys64/mingw64
     
-    INCLUDES := -I"$(MYSQL_DEV_DIR)/include"
-    LIBS := "$(MYSQL_DEV_DIR)/lib/libmysql.dll"
+    INCLUDES := -I"$(MSYS2_DIR)/include/mariadb" -I"$(MSYS2_DIR)/include"
+    
+    # Mengikat static library MinGW (-lmariadb) beserta ketergantungan kriptografi & jaringan
+    LIBS := -L"$(MSYS2_DIR)/lib" -lmariadb -lws2_32 -ladvapi32 -lcrypt32 -lsecur32 -lbcrypt -lshlwapi
     
     MKDIR := if not exist $(MODULES_DIR) mkdir $(MODULES_DIR)
     RM := del /Q /F 2>NUL || true
@@ -37,7 +40,6 @@ else
         TARGET := $(MODULES_DIR)/$(TARGET_NAME).so
     endif
     
-    # Deteksi Flag Kompilasi (pkg-config -> mysql_config -> mariadb_config -> default fallback)
     MYSQL_CFLAGS := $(shell pkg-config --cflags mariadb 2>/dev/null || \
                             pkg-config --cflags mysqlclient 2>/dev/null || \
                             mysql_config --cflags 2>/dev/null || \
